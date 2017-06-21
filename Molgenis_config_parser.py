@@ -6,5 +6,5 @@ class MolgenisConfigParser():
         config = {}
         for line in open(file):
             values = line.split('=')
-            config[values[0]] = values[1]
+            config[values[0]] = values[1].replace('\n', '')
         return config
