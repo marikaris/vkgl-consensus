@@ -105,7 +105,7 @@ class ConsensusTableGenerator():
 
 
 def main():
-    config = MolgenisConfigParser('config_test.txt').config
+    config = MolgenisConfigParser('config.txt').config
     labs = config['labs'].split(',')
     url = config['url']
     account = config['account']
