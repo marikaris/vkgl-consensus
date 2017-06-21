@@ -1,13 +1,16 @@
 import molgenis
 from Molgenis_config_parser import MolgenisConfigParser
-
+import pprint
 
 class ConsensusTableGenerator():
     def __init__(self, labs, session):
         self.labs = labs
         self.session = session
-        self.lab_data = self.process_data()
+        self.old_diseases = {}
         self.old_comments = {}
+        self.clear_tables()
+        print('Consensus and consensus comments cleared')
+        self.lab_data = self.process_data()
         table = self.calculate_consensus()
         self.upload_consensus(table)
 
@@ -19,6 +22,8 @@ class ConsensusTableGenerator():
                 variantId = variant['id'].replace(lab + '_', '')
                 if variantId not in consensus:
                     protein = ['' if 'protein' not in variant else variant['protein']][0]
+                    disease = ['' if 'consensus_' + variantId not in self.old_diseases else self.old_diseases[
+                        'consensus_' + variantId]][0]
                     consensus[variantId] = {lab + '_classification': variant['id'], 'counter': {'b': 0, 'p': 0, 'v': 0},
                                             'REF': variant['REF'], 'ALT': variant['ALT'], 'gene': variant['gene'],
                                             'cDNA': variant['cDNA'], 'protein': protein,
@@ -26,6 +31,8 @@ class ConsensusTableGenerator():
                                             'POS': str(variant['POS']), 'id': 'consensus_' + variantId,
                                             'comments': 'consensus_' + variantId,
                                             lab.lower(): variant['classification']}
+                    if disease != '':
+                        consensus[variantId]['disease'] = str(disease)
                 else:
                     consensus[variantId][lab + '_classification'] = variant['id']
                     consensus[variantId][lab.lower()] = variant['classification']
@@ -43,6 +50,7 @@ class ConsensusTableGenerator():
         ids = []
         for row in consensus:
             ids.append(row['id'])
+            self.old_diseases[row['id']] = ['' if 'disease' not in row else row['disease']['mim_number']][0]
         if len(ids) > 0:
             self.session.delete_list('VKGL_consensus', ids)
             print('Deleted consensus variants')
@@ -90,8 +98,6 @@ class ConsensusTableGenerator():
         self.session.add_all('VKGL_comments', comments)
 
     def upload_consensus(self, entities):
-        self.clear_tables()
-        print('Consensus and consensus comments cleared')
         self.upload_comments()
         print('Comments uploaded')
         self.session.add_all('VKGL_consensus', entities)
@@ -99,7 +105,7 @@ class ConsensusTableGenerator():
 
 
 def main():
-    config = MolgenisConfigParser('config.txt').config
+    config = MolgenisConfigParser('config_test.txt').config
     labs = config['labs'].split(',')
     url = config['url']
     account = config['account']
