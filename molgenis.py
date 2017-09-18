@@ -3,6 +3,7 @@ import json
 import urllib
 import pycurl
 import os
+import pprint
 
 try:
     from urllib.parse import quote_plus
@@ -77,6 +78,14 @@ class Session():
         response.raise_for_status();
         return response;
 
+    def get_total(self, entity, q=None):
+        response = self.session.get(self.url + "v2/" + quote_plus(entity),
+                                        headers=self._get_token_header())
+        if response.status_code == 200:
+            return response.json()["total"]
+        response.raise_for_status()
+        return response
+
     def get(self, entity, q=None, attributes=None, expand=None, num=100, start=0, sortColumn=None, sortOrder=None):
         '''Retrieves entity rows from an entity repository.
 
@@ -98,13 +107,13 @@ class Session():
                                          headers=self._get_token_header_with_content_type(),
                                          params={"_method": "GET"},
                                          data=json.dumps(
-                                             {"q": q, "attributes": attributes, "expand": expand, "num": num,
+                                             {"attributes": attributes, "expand": expand, "num": num,
                                               "start": start,
                                               "sortColumn": sortColumn, "sortOrder": sortOrder}))
         else:
             response = self.session.get(self.url + "v2/" + quote_plus(entity),
-                                        headers=self._get_token_header(),
-                                        params={"attributes": attributes, "expand": expand, "num": num, "start": start,
+                                        headers=self._get_token_header_with_content_type(),
+                                        params={"q": q, "attributes": attributes, "expand": expand, "num": num, "start": start,
                                                 "sortColumn": sortColumn, "sortOrder":
                                                     sortOrder})
         if response.status_code == 200:
@@ -163,8 +172,9 @@ class Session():
 
     def delete_list(self, entity, entities):
         '''Deletes multiple entity rows to an entity repository, given a list of id's.'''
+        headers = self._get_token_header_with_content_type()
         response = self.session.delete(self.url + "v2/" + quote_plus(entity),
-                                     headers=self._get_token_header_with_content_type(),
+                                     headers=headers,
                                      data=json.dumps({"entityIds": entities}))
         response.raise_for_status();
         return response;
@@ -218,6 +228,7 @@ class Session():
         files =  {'file': open(os.path.abspath(meta_data_zip), 'rb')}
         url = self.url.strip('/api/')+'/plugin/importwizard/importFile'
         response = requests.post(url, headers=header, files=files)
+        print(response)
         if response.status_code == 201:
             return response.json();
         response.raise_for_status();
