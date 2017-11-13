@@ -1,10 +1,13 @@
 import molgenis, math
 from Molgenis_config_parser import MolgenisConfigParser
 import pprint, sys
+from omim_parser import OmimParser
 
 class ConsensusTableGenerator():
-    def __init__(self, labs, session):
+    def __init__(self, labs, session, omim_file):
         print('Started')
+        self.omim_codes = OmimParser(omim_file).codes
+        print('Omim codes parsed')
         self.labs = labs
         self.session = session
         self.old_diseases = {}
@@ -30,8 +33,8 @@ class ConsensusTableGenerator():
                                         'POS': str(variant['POS']), 'id': 'consensus_' + variantId,
                                         'comments': 'consensus_' + variantId,
                                         lab.lower(): variant['classification']}
-                if disease != '':
-                    consensus[variantId]['disease'] = str(disease)
+                if variant['gene'] in self.omim_codes:
+                    consensus[variantId]['disease'] = self.omim_codes[variant['gene']]
             else:
                 consensus[variantId][lab + '_classification'] = variant['id']
                 consensus[variantId][lab.lower()] = variant['classification']
@@ -163,14 +166,14 @@ class ConsensusTableGenerator():
 
 
 def main():
-    config = MolgenisConfigParser('config.txt').config
+    config = MolgenisConfigParser('config_test.txt').config
     labs = config['labs'].split(',')
     url = config['url']
     account = config['account']
     pwd = config['password']
     session = molgenis.Session(url)
     session.login(account, pwd)
-    ConsensusTableGenerator(labs, session)
+    consensus = ConsensusTableGenerator(labs, session, 'OMIM_to_HGNC.txt')
 
 
 if __name__ == '__main__':
