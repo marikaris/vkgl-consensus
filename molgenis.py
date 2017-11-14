@@ -168,6 +168,7 @@ class Session():
         if response.status_code == 201:
             return [resource["href"].split("/")[-1] for resource in response.json()["resources"]]
         response.raise_for_status();
+        print(response.json())
         return response;
 
     def delete_list(self, entity, entities):

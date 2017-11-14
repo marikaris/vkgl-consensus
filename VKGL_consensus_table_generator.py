@@ -1,6 +1,6 @@
 import molgenis, math
 from Molgenis_config_parser import MolgenisConfigParser
-import pprint, sys
+import pprint
 from omim_parser import OmimParser
 
 class ConsensusTableGenerator():
@@ -24,8 +24,6 @@ class ConsensusTableGenerator():
             variantId = variant['id'].replace(lab + '_', '')
             if variantId not in consensus:
                 protein = ['' if 'protein' not in variant else variant['protein']][0]
-                disease = ['' if 'consensus_' + variantId not in self.old_diseases else self.old_diseases[
-                    'consensus_' + variantId]][0]
                 consensus[variantId] = {lab + '_classification': variant['id'], 'counter': {'b': 0, 'p': 0, 'v': 0},
                                         'REF': variant['REF'], 'ALT': variant['ALT'], 'gene': variant['gene'],
                                         'cDNA': variant['cDNA'], 'protein': protein,
@@ -173,7 +171,7 @@ def main():
     pwd = config['password']
     session = molgenis.Session(url)
     session.login(account, pwd)
-    consensus = ConsensusTableGenerator(labs, session, 'OMIM_to_HGNC.txt')
+    consensus = ConsensusTableGenerator(labs, session, 'omim.txt')
 
 
 if __name__ == '__main__':
