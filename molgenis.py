@@ -3,7 +3,6 @@ import json
 import urllib
 import pycurl
 import os
-import pprint
 
 try:
     from urllib.parse import quote_plus

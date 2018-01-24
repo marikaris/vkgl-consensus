@@ -3,3 +3,5 @@ __pycache__
 .idea
 config_test.txt
 OMIM_to_HGNC.txt
+*.csv
+Variant_double_disease_filter.py
